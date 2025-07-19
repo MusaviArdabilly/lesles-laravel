@@ -37,6 +37,9 @@ Route::post('/auth/google/callback', [GoogleController::class, 'handleGoogleLogi
 
 Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])->name('verification.verify'); //DONE
 
+Route::get('/email/verified', function () {
+    return view('auth.email-verified');
+})->name('email.verified');
 // Protected routes, requires auth:api
 Route::middleware(['auth:api'])->group(function () {
     

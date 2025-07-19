@@ -60,7 +60,8 @@ class AuthController extends Controller
 
         $user->markEmailAsVerified();
 
-        return response()->json(['success' => true, 'message' => 'Email verified successfully']);
+        // return response()->json(['success' => true, 'message' => 'Email verified successfully']);
+        return redirect()->route('email.verified');
     }
 
     public function resendVerification(Request $request)
