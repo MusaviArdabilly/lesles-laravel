@@ -14,14 +14,14 @@ use Illuminate\Support\Facades\Validator;
 
 class ClassController extends Controller
 {
-    // For Admin 
+    // For oper
     public function getAllClasses(Request $request)
     {
         $query = ClassModel::with([
-            'teacher', 
-            'students', 
             'educationLevel', 
             'subject',
+            'teacher',
+            'createdBy', 
             'location.province',
             'location.city',
             'location.district',
@@ -31,7 +31,19 @@ class ClassController extends Controller
         // Apply location filters
         $query = $this->applyLocationFilters($query, $request);
 
-        $classes = $query->latest()->get();
+        // Order by pending status first, then by created_at desc
+        $query = $query->orderByRaw("status = 'menunggu' DESC")
+                    ->orderBy('created_at', 'desc');
+
+        $classes = $query->get();
+        
+        // Append member_names
+        $classes->transform(function ($class) {
+            $memberIds = $class->members_id ?? [];
+            $memberNames = User::whereIn('id', $memberIds)->pluck('name');
+            $class->member_names = $memberNames;
+            return $class;
+        });
 
         return response()->json([
             'success' => true,
@@ -40,17 +52,109 @@ class ClassController extends Controller
         ]);
     }
 
+    // For Operator 
+    // 1. Show detail of selected class
+    public function getDetailClassForOperator($id)
+    {
+        $class = ClassModel::with([
+            'educationLevel',
+            'subject',
+            'teacher',
+            'createdBy',
+            'location.province',
+            'location.city',
+            'location.district',
+            'location.village',
+            'attendances.user' => function ($query) {
+                $query->select('id', 'name');
+            },
+            'attendances' => function ($query) {
+                $query->orderBy('attended_at', 'desc');
+            },
+        ])->find($id);
+
+        if (!$class) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kelas tidak ditemukan',
+            ], 404);
+        }
+
+        // Append member names
+        $memberIds = $class->members_id ?? [];
+        $memberNames = User::whereIn('id', $memberIds)->pluck('name');
+        $class->member_names = $memberNames;
+
+        // Group attendances by date (Y-m-d)
+        $attendancesGrouped = collect($class->attendances)->groupBy(function ($attendance) {
+            return Carbon::parse($attendance->attended_at)->toDateString();
+        });
+
+        // Optional: replace attendances with grouped version or add new key
+        $class->attendances_grouped = $attendancesGrouped;
+        unset($class->attendances);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Detail kelas ditemukan',
+            'data' => $class,
+        ]);
+    }
+
+    // 2. Assign teacher or reject class
+    public function assignOrReject(Request $request, $id)
+    {
+        $request->validate([
+        'action' => ['required', 'in:penugasan,ditolak'],
+        'teacher_id' => ['required_if:action,penugasan', 'nullable', 'exists:users,id'],
+        ]);
+
+        $class = ClassModel::find($id);
+
+        if (!$class) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kelas tidak ditemukan',
+            ], 404);
+        }
+
+        if ($request->action === 'penugasan') {
+            $class->teacher_id = $request->teacher_id;
+            $class->status = 'aktif';
+        } else if ($request->action === 'ditolak') {
+            $class->status = 'ditolak';
+        }
+
+        $class->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => $request->action === 'penugasan' 
+                ? 'Guru berhasil ditugaskan dan kelas aktif' 
+                : 'Kelas ditolak',
+            'data' => $class,
+        ]);
+    }
+
+    // For Guru and Murid
     public function getAllClassesByUser(Request $request)
     {
         $user = $request->user();
-        $filter = $request->query('filter', 'all'); // default to 'all'
+        $filter = $request->query('filter', 'all'); // e.g., 'today' or 'all'
+        $status = $request->query('status');        // e.g., 'aktif', optional
 
-        $classes = ClassModel::where(function ($query) use ($user) {
-                $query->whereJsonContains('members_id', $user->id)
-                    ->orWhere('created_by', $user->id)
-                    ->orWhere('teacher_id', $user->id);
-            })
-            ->with([
+        $query = ClassModel::where(function ($query) use ($user) {
+            $query->whereJsonContains('members_id', $user->id)
+                ->orWhere('created_by', $user->id)
+                ->orWhere('teacher_id', $user->id);
+        });
+
+        // Apply status filter if given
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        $classes = $query->with([
                 'educationLevel',
                 'subject',
                 'teacher',
@@ -63,7 +167,7 @@ class ClassController extends Controller
             ->latest()
             ->get();
 
-        // Filter only today’s classes if requested
+        // Filter today’s classes (based on schedule.day)
         if ($filter === 'today') {
             $today = Str::ucfirst(Carbon::now()->locale('id')->dayName); // e.g. "Rabu"
 
@@ -75,7 +179,7 @@ class ClassController extends Controller
                     }
                 }
                 return false;
-            })->values(); // reindex
+            })->values(); // reindex after filtering
         }
 
         // Append member_names
@@ -93,6 +197,8 @@ class ClassController extends Controller
         ]);
     }
 
+
+    // For Guru and Murid 
     public function getDetailClassByUser(Request $request, $id)
     {
         $user = $request->user();
@@ -154,43 +260,7 @@ class ClassController extends Controller
         ]);
     }
 
-    public function getUpcomingClasses(Request $request)
-    {
-        $user = $request->user();
-
-        $nowDay = now()->dayOfWeek; // 1=Monday, 2=Tuesday, etc.
-        $nowTime = now()->format('H:i');
-
-        $classes = ClassModel::whereHas('classSchedules', function ($query) use ($nowDay, $nowTime) {
-            $query->where('day', $nowDay)
-                  ->where('start_time', '>=', $nowTime);
-        });
-
-        if ($user->role === 'guru') {
-            $classes = $classes->where('teacher_id', $user->id);
-        } elseif ($user->role === 'murid') {
-            $classes = $classes->whereHas('students', fn($query) => $query->where('student_id', $user->id));
-        }
-
-        $classes = $classes->with([
-            'teacher', 
-            'students', 
-            'educationLevel', 
-            'subject', 
-            'classSchedules',
-            'location.province',
-            'location.city',
-            'location.district',
-            'location.village'
-        ])->get();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Upcoming classes',
-            'data' => $classes,
-        ]);
-    }
-
+    // For Murid 
     public function store(Request $request)
     {
         $user = $request->user();
@@ -250,7 +320,7 @@ class ClassController extends Controller
             'location_id' => $location?->id,
             'schedules' => $request->schedule,
             'members_id' => $memberIds,
-            'status' => 'pending',
+            'status' => 'menunggu',
             'created_by' => $user->id,
         ]);
 
@@ -268,6 +338,44 @@ class ClassController extends Controller
             ]),
         ], 201);
     }
+
+    public function getUpcomingClasses(Request $request)
+    {
+        $user = $request->user();
+
+        $nowDay = now()->dayOfWeek; // 1=Monday, 2=Tuesday, etc.
+        $nowTime = now()->format('H:i');
+
+        $classes = ClassModel::whereHas('classSchedules', function ($query) use ($nowDay, $nowTime) {
+            $query->where('day', $nowDay)
+                  ->where('start_time', '>=', $nowTime);
+        });
+
+        if ($user->role === 'guru') {
+            $classes = $classes->where('teacher_id', $user->id);
+        } elseif ($user->role === 'murid') {
+            $classes = $classes->whereHas('students', fn($query) => $query->where('student_id', $user->id));
+        }
+
+        $classes = $classes->with([
+            'teacher', 
+            'students', 
+            'educationLevel', 
+            'subject', 
+            'classSchedules',
+            'location.province',
+            'location.city',
+            'location.district',
+            'location.village'
+        ])->get();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Upcoming classes',
+            'data' => $classes,
+        ]);
+    }
+
 
 
 

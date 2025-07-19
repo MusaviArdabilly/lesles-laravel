@@ -194,20 +194,7 @@ class UserController extends Controller
 
     public function teachers()
     {
-        $teachers = User::where('role', 'guru')
-            ->with([
-                'teacherProfile.location.province',
-                'teacherProfile.location.city',
-                'teacherProfile.location.district',
-                'teacherProfile.location.village',
-                'teacherLocationAvailabilities.location.province',
-                'teacherLocationAvailabilities.location.city',
-                'teacherLocationAvailabilities.location.district',
-                'teacherLocationAvailabilities.location.village',
-                'educationLevelQualifications.qualification',
-                'subjectQualifications.qualification'
-            ])
-            ->get();
+        $teachers = User::where('role', 'guru')->get();
 
         return response()->json([
             'success' => true,

@@ -70,11 +70,15 @@ Route::middleware(['auth:api'])->group(function () {
 
         Route::get('/users/check-email', [UserController::class, 'checkByEmail']); //DONE
 
-        Route::get('/class/all', [ClassController::class, 'getAllClasses']);
+        Route::get('/class/all', [ClassController::class, 'getAllClasses']); //DONE Operator
         Route::get('/class', [ClassController::class, 'getAllClassesByUser']); //DONE
         Route::get('/class/{id}', [ClassController::class, 'getDetailClassByUser']); //DONE
         Route::get('/class/upcoming', [ClassController::class, 'getUpcomingClasses']);
         Route::post('/class', [ClassController::class, 'store']); //DONE
+
+        // get all class for operator, use same as user // DONE list pending
+        Route::get('/operator/class/{id}', [ClassController::class, 'getDetailClassForOperator']); // DONE - duplikasi sama user fetch class
+        Route::put('/operator/class/{id}/assign', [ClassController::class, 'assignOrReject']); // DONE
 
         Route::get('/attendance/check-open', [AttendanceController::class, 'checkAttendanceOpen']); //DONE
         Route::post('/attendance', [AttendanceController::class, 'store']); //DONE

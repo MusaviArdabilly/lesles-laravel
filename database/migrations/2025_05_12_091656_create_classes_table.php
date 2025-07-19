@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreignId('subject_id')->constrained('subjects')->onDelete('cascade');
             $table->foreignId('teacher_id')->nullable()->constrained('users')->onDelete('set null');           
             $table->foreignId('location_id')->nullable()->constrained('locations')->nullOnDelete();
-            $table->enum('status', ['pending', 'approved', 'rejected', 'assigned'])->default('pending');
+            $table->enum('status', ['menunggu', 'aktif', 'ditolak'])->default('menunggu');
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->json('schedules')->nullable();
             $table->json('members_id')->nullable();
