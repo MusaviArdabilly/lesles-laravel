@@ -2,42 +2,41 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\ClassModel;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ScheduleController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $user = Auth::user();
+        $user = $request->user();
 
-        if ($user->role === 'admin') {
-            // Admin: get all classes
-            $classes = ClassModel::with(['teacher', 'students'])
-                ->get(['id', 'name', 'level', 'subject', 'schedule']);
-            $userLevels = null;
+        $query = ClassModel::query();
+
+        // If you want, filter classes user is involved with
+        if ($user->role === 'murid') {
+            $query->whereHas('students', fn($q) => $q->where('student_id', $user->id));
         } elseif ($user->role === 'guru') {
-            // Teacher: get classes where teacher_id = user.id
-            $classes = ClassModel::with('students')
-                ->where('teacher_id', $user->id)
-                ->get(['id', 'name', 'level', 'subject', 'schedule', 'teacher_id']);
-            $userLevels = $user->teacherLevels->pluck('level');
-        } else {
-            // Student: get classes via pivot table
-            $classes = $user->classesAsStudent()
-                ->with('teacher')
-                ->get(['classes.id', 'name', 'level', 'subject', 'schedule', 'teacher_id']);
-            $userLevels = $user->studentLevels ? $user->studentLevels->level : null;
+            $query->where('teacher_id', $user->id);
         }
 
+        $classes = $query->get();
+
+        // Map schedules with class info
+        $schedules = $classes->map(fn($class) => [
+            'class_id' => $class->id,
+            'class_name' => $class->name,
+            'level' => $class->level,
+            'subject' => $class->subject->name ?? $class->subject, // fallback if subject relation missing
+            'teacher' => $class->teacher->name ?? null,
+            'schedule' => $class->schedule, // already cast to array
+        ]);
+
         return response()->json([
-            'user' => [
-                'name' => $user->name,
-                'role' => $user->role,
-                'level' => $userLevels
-            ],
-            'schedule' => $classes
+            'success' => true,
+            'message' => 'Schedules fetched',
+            'data' => $schedules,
         ]);
     }
 }

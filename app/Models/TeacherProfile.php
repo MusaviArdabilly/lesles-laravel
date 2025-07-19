@@ -5,22 +5,23 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class TeacherSubject extends Model
+class TeacherProfile extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'teacher_id',
-        'subject_id',
+        'location_id',
+        'phone',
     ];
 
-    public function teacher()
+    public function user()
     {
         return $this->belongsTo(User::class, 'teacher_id');
     }
 
-    public function subject()
+    public function location()
     {
-        return $this->belongsTo(Subject::class);
+        return $this->belongsTo(Location::class, 'location_id');
     }
 }

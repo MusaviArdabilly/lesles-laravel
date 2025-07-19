@@ -2,179 +2,150 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Attendance;
 use App\Models\ClassModel;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 
 class AttendanceController extends Controller
 {
-    public function index() {
-        $attendances = Attendance::with(['user', 'class'])->get();
+    public function checkAttendanceOpen(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->role !== 'murid') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only student can access this endpoint.',
+            ], 403);
+        }
+
+        $today = Carbon::today()->toDateString();
+
+        // Query classes where user is a member, and guru has already done attendance today
+        $availableClasses = ClassModel::whereJsonContains('members_id', $user->id)
+            ->whereHas('attendances', function ($query) use ($today) {
+                $query->where('role', 'guru')
+                    ->whereDate('attended_at', $today);
+            })
+            ->with([
+                'educationLevel',
+                'subject',
+                'teacher',
+                'location.province',
+                'location.city',
+                'location.district',
+                'location.village',
+            ])
+            ->get();
+
+        if ($availableClasses->isNotEmpty()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Kelas tersedia untuk absensi hari ini.',
+                'data' => $availableClasses,
+            ]);
+        }
+
         return response()->json([
-            'data' => $attendances
+            'success' => false,
+            'message' => 'Belum ada guru yang membuka absensi hari ini.',
+            'data' => [],
         ]);
     }
+    
+    // Store attendance record
+    public function store(Request $request)
+    {
+        $user = $request->user();
 
-    public function getAttendanceByUser() {
-        $user = Auth::user(); // Get the currently authenticated user
+        $validated = $request->validate([
+            'class_id' => 'required|exists:classes,id',
+            'role' => ['required', Rule::in(['guru', 'murid'])],
+            'attended_at' => 'nullable|date',
+            'reschedule_from' => 'nullable|date',
+            'note' => 'nullable|string',
+        ]);
 
-        $attendances = Attendance::with(['user', 'class'])
-            ->where('user_id', $user->id)
+        // Role check
+        if ($user->role !== 'admin' && $user->role !== $validated['role']) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        // Murid can only attend if guru attended or murid already attended today
+        if ($validated['role'] === 'murid') {
+            $date = $validated['attended_at'] ? date('Y-m-d', strtotime($validated['attended_at'])) : date('Y-m-d');
+
+            $guruAttended = Attendance::where('class_id', $validated['class_id'])
+                ->where('role', 'guru')
+                ->whereDate('attended_at', $date)
+                ->exists();
+
+            $muridAttended = Attendance::where('class_id', $validated['class_id'])
+                ->where('role', 'murid')
+                ->where('user_id', $user->id)
+                ->whereDate('attended_at', $date)
+                ->exists();
+
+            if (!$guruAttended && !$muridAttended) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Guru belum membuka kehadiran untuk sesi ini.',
+                ], 403);
+            }
+        }
+
+        $attendance = Attendance::create([
+            'user_id' => $user->id,
+            'class_id' => $validated['class_id'],
+            'role' => $validated['role'],
+            'attended_at' => now(),
+            'reschedule_from' => $validated['reschedule_from'] ?? null,
+            'note' => $validated['note'] ?? null,
+        ]);
+
+        return response()->json(['success' => true, 'data' => $attendance]);
+    }
+
+    // Get attendance for current authenticated user
+    public function getAttendanceByUser(Request $request)
+    {
+        $user = $request->user();
+
+        $attendances = Attendance::where('user_id', $user->id)
+            ->with(['classModel', 'classModel.teacher'])
+            ->orderBy('created_at', 'desc')
             ->get();
 
         return response()->json([
-            'data' => $attendances
+            'success' => true,
+            'message' => 'User attendances fetched',
+            'data' => $attendances,
         ]);
     }
 
-    public function store(Request $request)
+    // Get all attendances (for admins/operators)
+    public function index(Request $request)
     {
-        $user = Auth::user();
-        $classId = $request->input('class_id');
-        $class = ClassModel::findOrFail($classId);
+        $user = $request->user();
 
-        // Get schedule as array (no json_decode needed)
-        $schedule = $class->schedule;
-        if (!$schedule) {
-            return response()->json(['message' => 'Jadwal tidak tersedia.'], 403);
+        if ($user->role !== 'admin') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 403);
         }
 
-        $today = strtolower(now()->locale('id')->isoFormat('dddd')); // e.g. 'sabtu'
-        $now = Carbon::now();
+        $attendances = Attendance::with(['user', 'classModel.teacher'])
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-        if (strtolower($schedule['day']) !== $today) {
-            return response()->json(['message' => 'Tidak ada kelas hari ini.'], 403);
-        }
-
-        $start = Carbon::createFromFormat('H:i', $schedule['start_time']);
-        $end = Carbon::createFromFormat('H:i', $schedule['end_time']);
-
-        if (!$now->between($start, $end)) {
-            return response()->json(['message' => 'Check-in hanya diperbolehkan saat jam pelajaran'], 403);
-        }
-
-        // Prevent duplicate check-in
-        $alreadyCheckedIn = Attendance::where('user_id', $user->id)
-            ->where('class_id', $class->id)
-            ->whereDate('created_at', $now->toDateString())
-            ->exists();
-
-        if ($alreadyCheckedIn) {
-            return response()->json(['message' => 'Sudah check-in hari ini'], 400);
-        }
-
-        Attendance::create([
-            'user_id' => $user->id,
-            'class_id' => $class->id,
-            'role' => $user->role, 
-            'type' => 'check_in',
+        return response()->json([
+            'success' => true,
+            'message' => 'All attendances fetched',
+            'data' => $attendances,
         ]);
-
-        return response()->json(['message' => 'Check-in berhasil']);
     }
-
-
-    // public function store(Request $request)
-    // {
-    //     $user = Auth::user();
-    //     $classId = $request->input('class_id');
-    //     $class = ClassModel::findOrFail($classId);
-
-    //     // Determine day of week
-    //     $today = strtolower(now()->format('l')); // e.g. 'monday'
-    //     $now = Carbon::now();
-        
-    //     $schedule = $class->schedule;
-    //     if (!$schedule) {
-    //         return response()->json(['message' => 'Tidak ada kelas hari ini.'], 403);
-    //     }
-
-    //     // Localized current day (in Bahasa Indonesia)
-    //     $today = strtolower(now()->locale('id')->isoFormat('dddd')); // e.g., 'sabtu'
-    //     $now = Carbon::now();
-
-    //     // Compare today with the class schedule day
-    //     if (strtolower($schedule['day']) !== $today) {
-    //         return response()->json(['message' => 'Tidak ada kelas hari ini.'], 403);
-    //     }
-
-    //     // Parse start and end time from schedule
-    //     $start = Carbon::createFromFormat('H:i', $schedule['start_time']);
-    //     $end = Carbon::createFromFormat('H:i', $schedule['end_time']);
-
-    //     if ($user->isTeacher()) {
-    //         return $this->handleTeacher($user, $class, $now, $start, $end);
-    //     }
-
-    //     return $this->handleStudent($user, $class, $now, $start, $end);
-    // }
-
-    // private function handleTeacher($user, $class, $now, $start, $end)
-    // {
-    //     // Clock In
-    //     $earlyClockIn = $start->copy()->subMinutes(15);
-    //     $lateClockOut = $end->copy()->addMinutes(15);
-
-    //     // Prevent duplicate clock-in or clock-out
-    //     $existing = Attendance::where('user_id', $user->id)
-    //         ->where('class_id', $class->id)
-    //         ->whereDate('timestamp', now()->toDateString())
-    //         ->get();
-
-    //     $hasClockIn = $existing->where('type', 'clock_in')->isNotEmpty();
-    //     $hasClockOut = $existing->where('type', 'clock_out')->isNotEmpty();
-
-    //     if (!$hasClockIn && $now->between($earlyClockIn, $start)) {
-    //         Attendance::create([
-    //             'user_id' => $user->id,
-    //             'class_id' => $class->id,
-    //             'role' => 'guru',
-    //             'type' => 'clock_in',
-    //             'timestamp' => $now,
-    //         ]);
-    //         return response()->json(['message' => 'Clocked in successfully']);
-    //     }
-
-    //     if ($hasClockIn && !$hasClockOut && $now->greaterThanOrEqualTo($end)) {
-    //         Attendance::create([
-    //             'user_id' => $user->id,
-    //             'class_id' => $class->id,
-    //             'role' => 'guru',
-    //             'type' => 'clock_out',
-    //             'timestamp' => $now,
-    //         ]);
-    //         return response()->json(['message' => 'Clocked out successfully']);
-    //     }
-
-    //     return response()->json(['message' => 'Invalid clock-in/out time or already done'], 400);
-    // }
-
-    // private function handleStudent($user, $class, $now, $start, $end)
-    // {
-    //     if (!$now->between($start, $end)) {
-    //         return response()->json(['message' => 'Check-in is only allowed during class time'], 403);
-    //     }
-
-    //     $alreadyCheckedIn = Attendance::where('user_id', $user->id)
-    //         ->where('class_id', $class->id)
-    //         ->where('type', 'check_in')
-    //         ->whereDate('timestamp', now()->toDateString())
-    //         ->exists();
-
-    //     if ($alreadyCheckedIn) {
-    //         return response()->json(['message' => 'Already checked in'], 400);
-    //     }
-
-    //     Attendance::create([
-    //         'user_id' => $user->id,
-    //         'class_id' => $class->id,
-    //         'role' => 'murid',
-    //         'type' => 'check_in',
-    //         'timestamp' => $now,
-    //     ]);
-
-    //     return response()->json(['message' => 'Check-in successful']);
-    // }
 }

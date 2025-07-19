@@ -30,18 +30,19 @@ class GoogleController extends Controller
         $user = User::where('email', $email)->first();
 
         if (!$user) {
-            // Create user with email_verified_at set
+            // Create new user with email_verified_at set
             $user = User::create([
                 'name' => $name,
                 'email' => $email,
                 'google_id' => $googleId,
                 'email_verified_at' => now(),
                 'password' => bcrypt(Str::random(24)), // random password
+                'role' => 'murid', // Default to student for SSO
+                'profile_complete' => false // Flag for profile completion
             ]);
         } else {
             // Update existing user
             $user->update([
-                'name' => $name,
                 'google_id' => $googleId,
             ]);
         }
@@ -50,12 +51,10 @@ class GoogleController extends Controller
         $token = JWTAuth::fromUser($user);
 
         return response()->json([
-            'token' => $token,
-            // 'user' => $user
-            'user' => [
-                'name' => $user->name,
-            ],
-        ]);
+            'success' => true,
+            'message' => 'Login with Google successful.',
+            'data' => compact('token'),
+        ], 201);
     }
 }
 

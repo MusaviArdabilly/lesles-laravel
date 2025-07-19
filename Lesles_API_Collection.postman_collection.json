@@ -1,0 +1,2223 @@
+{
+	"info": {
+		"_postman_id": "lesles-api-collection",
+		"name": "Lesles API Collection",
+		"description": "Complete API collection for Lesles.id Laravel application - Updated with simplified teacher location availability (no day_of_week) and unified teacher qualifications system",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\",\n    \"role\": \"murid\",\n    \"phone\": \"081234567890\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"register"
+							]
+						}
+					}
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"john@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"login"
+							]
+						}
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"logout"
+							]
+						}
+					}
+				},
+				{
+					"name": "Google Auth Callback",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id_token\": \"your_google_id_token_here\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/google/callback",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"google",
+								"callback"
+							]
+						}
+					}
+				},
+				{
+					"name": "Check Email Verified",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/email/check-verified",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"email",
+								"check-verified"
+							]
+						}
+					}
+				},
+				{
+					"name": "Resend Email Verification",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/email/resend",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"email",
+								"resend"
+							]
+						}
+					}
+				},
+				{
+					"name": "Verify Email",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/email/verify/{{user_id}}/{{verification_hash}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"email",
+								"verify",
+								"{{user_id}}",
+								"{{verification_hash}}"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Get My Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"me"
+							]
+						}
+					}
+				},
+				{
+					"name": "Update My Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Updated Name\",\n    \"phone\": \"081234567891\",\n    \"location_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"me"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Teachers List",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/teachers",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"teachers"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Students List",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/students",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"students"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Class",
+			"item": [
+				{
+					"name": "Create Class",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Fisika 7A\",\n    \"education_level_id\": 1,\n    \"subject_id\": 1,\n    \"teacher_id\": 1,\n    \"location_id\": 1,\n    \"status\": \"pending\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/class",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"class"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get My Classes",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/class",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"class"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get All Classes",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/class/all",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"class",
+								"all"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Classes by District ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/class/all?district_id=3517",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"class",
+								"all"
+							],
+							"query": [
+								{
+									"key": "district_id",
+									"value": "3517"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Classes by District Name",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/class/all?district_name=jombang",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"class",
+								"all"
+							],
+							"query": [
+								{
+									"key": "district_name",
+									"value": "jombang"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Classes by Province and City",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/class/all?province_id=35&city_id=3517",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"class",
+								"all"
+							],
+							"query": [
+								{
+									"key": "province_id",
+									"value": "35"
+								},
+								{
+									"key": "city_id",
+									"value": "3517"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Classes by Location ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/class/all?location_id=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"class",
+								"all"
+							],
+							"query": [
+								{
+									"key": "location_id",
+									"value": "1"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Upcoming Classes",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/class/upcoming",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"class",
+								"upcoming"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Attendance",
+			"item": [
+				{
+					"name": "Create Attendance",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"class_id\": 1,\n    \"role\": \"murid\",\n    \"note\": \"Present in class\",\n    \"reschedule_to\": null\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/attendance",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"attendance"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get My Attendance",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/attendance",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"attendance"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get All Attendance (Admin Only)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/attendance/all",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"attendance",
+								"all"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Schedule",
+			"item": [
+				{
+					"name": "Get Schedule",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/schedule",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"schedule"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Dashboard",
+			"item": [
+				{
+					"name": "Get Dashboard",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/dashboard",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"dashboard"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Master Data",
+			"item": [
+				{
+					"name": "Education Levels",
+					"item": [
+						{
+							"name": "Get Education Levels",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/education-levels",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"education-levels"
+									]
+								}
+							}
+						},
+						{
+							"name": "Get Education Level by ID",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/education-levels/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"education-levels",
+										"1"
+									]
+								}
+							}
+						},
+						{
+							"name": "Create Education Level",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"code\": \"SD\",\n    \"name\": \"Sekolah Dasar\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/education-levels",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"education-levels"
+									]
+								}
+							}
+						},
+						{
+							"name": "Update Education Level",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"code\": \"SD\",\n    \"name\": \"Sekolah Dasar Updated\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/education-levels/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"education-levels",
+										"1"
+									]
+								}
+							}
+						},
+						{
+							"name": "Delete Education Level",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/education-levels/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"education-levels",
+										"1"
+									]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Subjects",
+					"item": [
+						{
+							"name": "Get All Subjects",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/subjects",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"subjects"
+									]
+								}
+							}
+						},
+						{
+							"name": "Get Subject by ID",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/subjects/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"subjects",
+										"1"
+									]
+								}
+							}
+						},
+						{
+							"name": "Create Subject",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Mathematics\",\n    \"education_level_id\": 1\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/subjects",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"subjects"
+									]
+								}
+							}
+						},
+						{
+							"name": "Update Subject",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Advanced Mathematics\",\n    \"education_level_id\": 1\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/subjects/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"subjects",
+										"1"
+									]
+								}
+							}
+						},
+						{
+							"name": "Delete Subject",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/subjects/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"subjects",
+										"1"
+									]
+								}
+							}
+						},
+						{
+							"name": "Get Subjects by Education Level",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/subjects/education-level/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"subjects",
+										"education-level",
+										"1"
+									]
+								}
+							}
+						},
+						{
+							"name": "Search Subjects",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{auth_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/subjects/search?name=math",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"subjects",
+										"search"
+									],
+									"query": [
+										{
+											"key": "name",
+											"value": "math"
+										}
+									]
+								}
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Location",
+			"item": [
+				{
+					"name": "Get All Locations",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/locations/all",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"locations",
+								"all"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Location by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/locations/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"locations",
+								"1"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Provinces",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/locations/provinces",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"locations",
+								"provinces"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Cities",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/locations/cities?province_id=31",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"locations",
+								"cities"
+							],
+							"query": [
+								{
+									"key": "province_id",
+									"value": "31"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Districts",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/locations/districts?city_id=3171",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"locations",
+								"districts"
+							],
+							"query": [
+								{
+									"key": "city_id",
+									"value": "3171"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Villages",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/locations/villages?district_id=317101",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"locations",
+								"villages"
+							],
+							"query": [
+								{
+									"key": "district_id",
+									"value": "317101"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Location",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"province_id\": 31,\n    \"city_id\": 3171,\n    \"district_id\": 317101,\n    \"village_id\": 31710101,\n    \"name\": \"Mall Taman Anggrek\",\n    \"address\": \"Jl. Letjen S. Parman Kav. 21, Jakarta Barat\",\n    \"latitude\": -6.1754,\n    \"longitude\": 106.8272\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/locations",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"locations"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Teacher Qualifications",
+			"item": [
+				{
+					"name": "Get All Teacher Qualifications",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/teacher-qualifications",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"teacher-qualifications"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Teacher Qualifications",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/teacher-qualifications/teacher/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"teacher-qualifications",
+								"teacher",
+								"1"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Teachers for Education Level",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/teacher-qualifications/education-level/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"teacher-qualifications",
+								"education-level",
+								"1"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Teachers for Subject",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/teacher-qualifications/subject/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"teacher-qualifications",
+								"subject",
+								"1"
+							]
+						}
+					}
+				},
+				{
+					"name": "Assign Education Levels to Teacher",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"education_level_ids\": [1, 2, 3]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/teacher-qualifications/teacher/1/education-levels",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"teacher-qualifications",
+								"teacher",
+								"1",
+								"education-levels"
+							]
+						}
+					}
+				},
+				{
+					"name": "Assign Subjects to Teacher",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"subject_ids\": [1, 2, 3]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/teacher-qualifications/teacher/1/subjects",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"teacher-qualifications",
+								"teacher",
+								"1",
+								"subjects"
+							]
+						}
+					}
+				},
+				{
+					"name": "Remove Qualification from Teacher",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/teacher-qualifications/teacher/1/education_level/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"teacher-qualifications",
+								"teacher",
+								"1",
+								"education_level",
+								"1"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get My Qualifications",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/teacher-qualifications/my",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"teacher-qualifications",
+								"my"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Teacher Location Availability",
+			"item": [
+				{
+					"name": "Get All Teacher Availabilities",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/teacher-availabilities/all",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"teacher-availabilities",
+								"all"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get My Availabilities",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/teacher-availabilities/my",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"teacher-availabilities",
+								"my"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Available Teachers for Location",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/teacher-availabilities/available-teachers?location_id=1&is_available=true",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"teacher-availabilities",
+								"available-teachers"
+							],
+							"query": [
+								{
+									"key": "location_id",
+									"value": "1"
+								},
+								{
+									"key": "is_available",
+									"value": "true"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Teacher Availability by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/teacher-availabilities/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"teacher-availabilities",
+								"1"
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Teacher Availability",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"teacher_id\": 1,\n    \"location_id\": 1,\n    \"is_available\": true,\n    \"time_slots\": [\n        {\n            \"start\": \"08:00\",\n            \"end\": \"10:00\"\n        },\n        {\n            \"start\": \"14:00\",\n            \"end\": \"17:00\"\n        }\n    ],\n    \"notes\": \"Available for morning and afternoon sessions\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/teacher-availabilities",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"teacher-availabilities"
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Teacher Availability",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"is_available\": false,\n    \"time_slots\": [\n        {\n            \"start\": \"09:00\",\n            \"end\": \"12:00\"\n        },\n        {\n            \"start\": \"13:00\",\n            \"end\": \"16:00\"\n        }\n    ],\n    \"notes\": \"Updated schedule with lunch break\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/teacher-availabilities/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"teacher-availabilities",
+								"1"
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Teacher Availability",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/teacher-availabilities/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"teacher-availabilities",
+								"1"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "System",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"health"
+							]
+						}
+					}
+				},
+				{
+					"name": "Clear Cache",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/clear-cache",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"clear-cache"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Student",
+			"item": [
+				{
+					"name": "Complete Profile",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"John Doe\",\n    \"location_id\": 1,\n    \"school_name\": \"SMA Negeri 1 Jakarta\",\n    \"education_level_id\": 3,\n    \"parent_name\": \"Jane Doe\",\n    \"parent_phone\": \"081234567890\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/student/complete-profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"student",
+								"complete-profile"
+							]
+						}
+					}
+				},
+				{
+					"name": "Check Profile Status",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/student/profile-status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"student",
+								"profile-status"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Class Attendance",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/student/class/1/attendance",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"student",
+								"class",
+								"1",
+								"attendance"
+							]
+						}
+					}
+				},
+				{
+					"name": "Request Class Reschedule",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"new_schedule\": \"Monday 14:00-16:00\",\n    \"reason\": \"Family emergency\",\n    \"type\": \"one_time\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/student/class/1/reschedule",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"student",
+								"class",
+								"1",
+								"reschedule"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Current and Upcoming Classes",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/student/classes/current-upcoming",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"student",
+								"classes",
+								"current-upcoming"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Reschedule Requests",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/student/reschedule-requests",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"student",
+								"reschedule-requests"
+							]
+						}
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "auth_token",
+			"value": "your_jwt_token_here",
+			"type": "string"
+		},
+		{
+			"key": "admin_token",
+			"value": "your_admin_jwt_token_here",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "verification_hash",
+			"value": "your_verification_hash_here",
+			"type": "string"
+		}
+	]
+} 

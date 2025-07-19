@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('student_levels', function (Blueprint $table) {
+        Schema::create('education_levels', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('student_id')->constrained('users')->onDelete('cascade');
-            $table->enum('level', ['sd', 'smp', 'sma']);
+            $table->string('code')->unique(); // e.g., 'sd', 'smp', 'sma'
+            $table->string('name'); // e.g., 'Sekolah Dasar'
             $table->timestamps();
         });
     }
@@ -24,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('student_levels');
+        Schema::dropIfExists('education_levels');
     }
 };

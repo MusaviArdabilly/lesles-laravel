@@ -2,99 +2,259 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
-use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Models\Location;
+use App\Models\StudentProfile;
+use App\Models\TeacherProfile;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    public function me()
+    public function me(Request $request)
     {
-        // return response()->json(Auth::user());
-        $user = Auth::user()->load(['studentLevels', 'teacherLevels']);
-        return new UserResource($user);
+        $user = $request->user();
+        
+        // Load relationships based on user role
+        if ($user->role === 'murid') {
+            $user->load([
+                'studentProfile.educationLevel',
+                'studentProfile.location.province',
+                'studentProfile.location.city',
+                'studentProfile.location.district',
+                'studentProfile.location.village',
+            ]);
+        } elseif ($user->role === 'guru') {
+            $user->load([
+                'teacherProfile.location.province',
+                'teacherProfile.location.city',
+                'teacherProfile.location.district',
+                'teacherProfile.location.village',
+                'educationLevels',
+                'subjects.educationLevel',
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Current user profile',
+            'data' => compact('user'),
+        ]);
     }
 
     public function update(Request $request)
     {
-        $user = Auth::user();
+        $user = $request->user();
 
-        $validated = $request->validate([
-            'name' => 'nullable|string|max:255',
-            'phone' => 'nullable|unique:users,phone,' . $user->id . '|string|max:20',
-            'picture' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'password' => 'nullable|string|min:8|confirmed',
-            'teacher_levels' => 'required_if:role,guru|array',
-            'student_level' => 'required_if:role,murid|string'
-        ]);
+        // --- Profile Completion Logic for New Students ---
+        // Your frontend sends a `PUT /me` request for profile completion.
+        // We'll detect this scenario and handle it here.
+        if ($user->role === 'murid' && !$user->profile_complete) {
+            
+            $validated = $request->validate([
+                'name' => 'sometimes|required|string|max:255',
+                'phone' => 'required|string|max:20|unique:users,phone,'.$user->id,
+                'province_id' => 'required|exists:indonesia_provinces,id',
+                'city_id' => 'required|exists:indonesia_cities,id',
+                'district_id' => 'required|exists:indonesia_districts,id',
+                'village_id' => 'required|exists:indonesia_villages,id',
+                'school_name' => 'required|string|max:255',
+                'education_level_id' => 'required|exists:education_levels,id',
+                'grade' => 'required|string|max:255',
+                'parent_name' => 'nullable|string|max:255',
+                'parent_phone' => 'nullable|string|max:20',
+                'password' => 'required|confirmed|string|min:8',
+            ]);
 
-        // Update basic fields
-        $user->name = $validated['name'];
-        $user->phone = $validated['phone'] ?? $user->phone;
+            DB::beginTransaction();
+            try {
+                // Find or create the location based on the IDs from the form
+                $location = Location::firstOrCreate(
+                    ['village_id' => $validated['village_id']],
+                    [
+                        'province_id' => $validated['province_id'],
+                        'city_id' => $validated['city_id'],
+                        'district_id' => $validated['district_id'],
+                    ]
+                );
 
-        // Handle file upload if provided
-        if ($request->hasFile('picture')) {
-            $path = $request->file('picture')->store('user_pictures', 'public');
-            $user->picture = $path;
-        }
+                // Update user's name, password, and set profile as complete
+                $user->update([
+                    'name' => $validated['name'] ?? $user->name,
+                    'phone' => $validated['phone'] ?? null,
+                    'password' => Hash::make($validated['password']),
+                    'profile_complete' => true,
+                ]);
 
-        // Update password if provided
-        if (!empty($validated['password'])) {
-            $user->password = Hash::make($validated['password']);
-        }
+                // Create the student's profile with all the form data
+                $user->studentProfile()->create([
+                    'location_id' => $location->id,
+                    'school_name' => $validated['school_name'],
+                    'education_level_id' => $validated['education_level_id'],
+                    'grade' => $validated['grade'],
+                    'parent_name' => $validated['parent_name'] ?? null,
+                    'parent_phone' => $validated['parent_phone'] ?? null,
+                ]);
 
-        // Update levels based on user role
-        if ($user->role === 'guru' && !empty($validated['teacher_levels'])) {
-            // Delete existing teacher levels before updating
-            $user->teacherLevels()->delete();
+                DB::commit();
 
-            // Add new teacher levels
-            foreach ($validated['teacher_levels'] as $level) {
-                $user->teacherLevels()->create(['level' => $level]); // Assuming you have a 'level' column in the TeacherLevel model
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Profile completed successfully',
+                    'data' => $user->fresh()->load('studentProfile.location'),
+                ]);
+
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                return response()->json(['success' => false, 'message' => 'Failed to complete profile', 'error' => $e->getMessage()], 500);
             }
         }
 
-        if ($user->role === 'murid' && !empty($validated['student_level'])) {
-            $user->student_level = $validated['student_level']; 
+        // --- Existing General Profile Update Logic ---
+        $rules = [
+            'name' => 'sometimes|required|string|max:255',
+            'phone' => 'sometimes|required|string|max:20|unique:users,phone,'.$user->id,
+            'picture' => 'nullable|string'
+        ];
+
+        // Role-specific rules
+        if ($user->role === 'murid') {
+            $rules = array_merge($rules, [
+                'location_id' => 'nullable|exists:locations,id',
+                'parent_name' => 'nullable|string|max:255',
+                'parent_phone' => 'nullable|string|max:20',
+                'school_name' => 'nullable|string|max:255',
+                'education_level_id' => 'nullable|exists:education_levels,id',
+            ]);
         }
 
-        $user->save();
+        if ($user->role === 'guru') {
+            $rules = array_merge($rules, [
+                'location_id' => 'nullable|exists:locations,id',
+                'phone' => 'nullable|string|max:20',
+            ]);
+        }
 
-        return response()->json([
-            'message' => 'Profile updated successfully',
-            'data' => new UserResource($user),
-        ]);
+        $validated = $request->validate($rules);
+
+        DB::beginTransaction();
+        try {
+            $user->update([
+                'name' => $validated['name'] ?? $user->name,
+                'phone' => $validated['phone'] ?? null,
+                'picture' => $validated['picture'] ?? null,
+            ]);
+
+            if ($user->role === 'murid' && $user->profile_complete) {
+                $user->studentProfile()->updateOrCreate(
+                    ['student_id' => $user->id],
+                    $request->only(['location_id', 'parent_name', 'parent_phone', 'school_name', 'education_level_id', 'grade'])
+                );
+            }
+
+            if ($user->role === 'guru') {
+                $user->teacherProfile()->updateOrCreate(
+                    ['teacher_id' => $user->id],
+                    [
+                        'location_id' => $validated['location_id'] ?? null,
+                        'phone' => $validated['phone'] ?? null,
+                    ]
+                );
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'User updated successfully',
+                'data' => $user->fresh()->load([
+                    'studentProfile.educationLevel',
+                    'studentProfile.location.province',
+                    'studentProfile.location.city',
+                    'studentProfile.location.district',
+                    'studentProfile.location.village',
+                    'teacherProfile.location.province',
+                    'teacherProfile.location.city',
+                    'teacherProfile.location.district',
+                    'teacherProfile.location.village',
+                ]),
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update user',
+                'data' => $e->getMessage(),
+            ], 500);
+        }
     }
-    
-    public function teachers(Request $request) {
-        $level = $request->query('level');
 
+    public function teachers()
+    {
         $teachers = User::where('role', 'guru')
-            ->whereHas('teacherLevels', function ($query) use ($level) {
-                if ($level) $query->where('level', $level);
-            })
-            ->get(['id', 'name']);
+            ->with([
+                'teacherProfile.location.province',
+                'teacherProfile.location.city',
+                'teacherProfile.location.district',
+                'teacherProfile.location.village',
+                'teacherLocationAvailabilities.location.province',
+                'teacherLocationAvailabilities.location.city',
+                'teacherLocationAvailabilities.location.district',
+                'teacherLocationAvailabilities.location.village',
+                'educationLevelQualifications.qualification',
+                'subjectQualifications.qualification'
+            ])
+            ->get();
 
         return response()->json([
-            'teachers' => $teachers
+            'success' => true,
+            'message' => 'List of teachers',
+            'data' => $teachers,
         ]);
     }
-    
-    public function students(Request $request) {
-        $level = $request->query('level');
 
+    public function students()
+    {
         $students = User::where('role', 'murid')
-            ->whereHas('studentLevels', function ($query) use ($level) {
-                if ($level) $query->where('level', $level);
-            })
-            ->get(['id', 'name']);
+            ->with([
+                'studentProfile.educationLevel',
+                'studentProfile.location.province',
+                'studentProfile.location.city',
+                'studentProfile.location.district',
+                'studentProfile.location.village',
+            ])
+            ->get();
 
         return response()->json([
-            'students' => $students
+            'success' => true,
+            'message' => 'List of students',
+            'data' => $students,
         ]);
     }
+
+    public function checkByEmail(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User does not exist.'
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User exist.',
+            'data' => compact('user'),
+        ], 200);
+    }
+
 }

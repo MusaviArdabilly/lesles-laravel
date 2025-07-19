@@ -8,42 +8,66 @@ use Illuminate\Database\Eloquent\Model;
 class ClassModel extends Model
 {
     use HasFactory;
-    
+
     protected $table = 'classes';
 
     protected $fillable = [
-        'name', 
-        'level', 
-        'subject', 
-        'teacher_id', 
-        'schedule', 
-    ];
-    
-    // Remove this if 'schedule' is JSON and NOT a related table
-    protected $casts = [
-        'schedule' => 'array', // to decode JSON automatically
+        'name',
+        'education_level_id',
+        'subject_id',
+        'teacher_id',
+        'location_id',
+        'status',
+        'created_by',
+        'type',
+        'description',
+        'note',      
+        'schedules', 
+        'members_id',
     ];
 
-    // Class belongs to one teacher
+    protected $casts = [
+        'schedules' => 'array',
+        'members_id' => 'array',
+    ];
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function educationLevel()
+    {
+        return $this->belongsTo(EducationLevel::class);
+    }
+
+    public function subject()
+    {
+        return $this->belongsTo(Subject::class);
+    }
+
     public function teacher()
     {
         return $this->belongsTo(User::class, 'teacher_id');
     }
 
-    // Class has many students
+    public function classSchedules()
+    {
+        return $this->hasMany(ClassSchedule::class, 'class_id');
+    }
+
     public function students()
     {
         return $this->belongsToMany(User::class, 'class_students', 'class_id', 'student_id');
     }
-
-    // Class has many attendances
+    
     public function attendances()
     {
-        return $this->hasMany(Attendance::class, 'class_id');
+        return $this->hasMany(Attendance::class, 'class_id', 'id');
     }
-    // Class has many schedule
-    public function schedule()
+
+    public function location()
     {
-        return $this->hasOne(Schedule::class);
+        return $this->belongsTo(Location::class, 'location_id');
     }
 }

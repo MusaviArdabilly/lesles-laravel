@@ -11,11 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('teacher_subjects', function (Blueprint $table) {
+        Schema::create('teacher_education_levels', function (Blueprint $table) {
             $table->id();
             $table->foreignId('teacher_id')->constrained('users')->onDelete('cascade');
-            $table->string('subject');
+            $table->foreignId('education_level_id')->constrained('education_levels')->onDelete('cascade');
             $table->timestamps();
+
+            // Prevent duplicate teacher-education level combinations
+            $table->unique(['teacher_id', 'education_level_id']);
         });
     }
 
@@ -24,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('teacher_subjects');
+        Schema::dropIfExists('teacher_education_levels');
     }
 };

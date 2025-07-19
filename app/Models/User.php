@@ -27,6 +27,8 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'password',
         'picture',
         'email_verified_at',
+        'google_id',
+        'profile_complete',
     ];
 
     /**
@@ -35,6 +37,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
      * @var array<int, string>
      */
     protected $hidden = [
+        'google_id',
         'password',
         'remember_token',
     ];
@@ -59,46 +62,59 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         return [];
     }
 
-    // Teacher: has many subjects
-    public function teacherSubjects()
+    public function studentProfile()
     {
-        return $this->hasMany(TeacherSubject::class, 'teacher_id');
+        return $this->hasOne(StudentProfile::class, 'student_id');
     }
 
-    // Teacher: has many levels
-    public function teacherLevels()
+    public function teacherProfile()
     {
-        return $this->hasMany(TeacherLevel::class, 'teacher_id');
+        return $this->hasOne(TeacherProfile::class, 'teacher_id');
     }
 
-    // Student: has one levels
-    public function studentLevels()
+    public function attendances()
     {
-        return $this->hasOne(StudentLevel::class, 'student_id');
+        return $this->hasMany(Attendance::class);
     }
 
-    // Teacher: has many availabilities
-    public function availabilities()
-    {
-        return $this->hasMany(TeacherAvailability::class, 'teacher_id');
-    }
-
-    // Teacher: teaches many classes
-    public function classesAsTeacher()
+    public function classesTaught()
     {
         return $this->hasMany(ClassModel::class, 'teacher_id');
     }
 
-    // Student: belongs to many classes
-    public function classesAsStudent()
+    public function subjects()
     {
-        return $this->belongsToMany(ClassModel::class, 'class_students', 'student_id', 'class_id');
+        return $this->belongsToMany(Subject::class, 'teacher_subjects', 'teacher_id', 'subject_id');
     }
 
-    // User: has many attendances
-    public function attendances()
+    public function educationLevels()
     {
-        return $this->hasMany(Attendance::class);
+        return $this->belongsToMany(EducationLevel::class, 'teacher_education_levels', 'teacher_id', 'education_level_id');
+    }
+
+    public function qualifications()
+    {
+        return $this->hasMany(TeacherQualification::class, 'teacher_id');
+    }
+
+    public function educationLevelQualifications()
+    {
+        return $this->hasMany(TeacherQualification::class, 'teacher_id')->where('type', 'education_level');
+    }
+
+    public function subjectQualifications()
+    {
+        return $this->hasMany(TeacherQualification::class, 'teacher_id')->where('type', 'subject');
+    }
+
+    public function teacherLocationAvailabilities()
+    {
+        return $this->hasMany(TeacherLocationAvailability::class, 'teacher_id');
+    }
+
+    public function studentClasses()
+    {
+        return $this->belongsToMany(ClassModel::class, 'class_students', 'student_id', 'class_id');
     }
 
 }

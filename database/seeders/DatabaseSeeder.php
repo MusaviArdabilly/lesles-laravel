@@ -15,7 +15,7 @@ class DatabaseSeeder extends Seeder
         // \App\Models\User::factory(10)->create();
 
         // \App\Models\User::factory()->create([
-        //     'name' => 'Dany Guru',
+        //     'name' => 'username',
         //     'role' => 'guru',
         //     'phone' => '085123456789',
         //     'email' => 'dany@mail.com',
@@ -23,11 +23,8 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             UserSeeder::class,
-            UserLevelSeeder::class,
-        ]);
-
-        $this->call([
-            ClassSeeder::class,
+            EducationLevelSeeder::class,
+            SubjectSeeder::class,
         ]);
 
     }
