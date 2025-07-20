@@ -248,9 +248,9 @@ class ClassController extends Controller
         }
 
         // Authorization: user must be creator, member, or teacher
-        $isCreator = $class->created_by === $user->id;
+        $isCreator = $class->created_by == $user->id;
         $isMember = is_array($class->members_id) && in_array($user->id, $class->members_id);
-        $isTeacher = $class->teacher_id === $user->id;
+        $isTeacher = $class->teacher_id == $user->id;
 
         if (!$isCreator && !$isMember && !$isTeacher) {
             return response()->json([
