@@ -54,8 +54,18 @@ class ClassController extends Controller
 
     // For Operator 
     // 1. Show detail of selected class
-    public function getDetailClassForOperator($id)
+    public function getDetailClassForOperator(Request $request, $id)
     {
+        $user = $request->user();
+
+        // Role check
+        if ($user->role !== 'operator') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak. Hanya operator yang dapat melakukan aksi ini.',
+            ], 403);
+        }
+        
         $class = ClassModel::with([
             'educationLevel',
             'subject',
@@ -104,6 +114,16 @@ class ClassController extends Controller
     // 2. Assign teacher or reject class
     public function assignOrReject(Request $request, $id)
     {
+        $user = $request->user();
+
+        // Role check
+        if ($user->role !== 'operator') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak. Hanya operator yang dapat melakukan aksi ini.',
+            ], 403);
+        }
+
         $request->validate([
         'action' => ['required', 'in:penugasan,ditolak'],
         'teacher_id' => ['required_if:action,penugasan', 'nullable', 'exists:users,id'],
