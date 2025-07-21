@@ -56,7 +56,8 @@ Route::middleware(['auth:api'])->group(function () {
 
         Route::get('/dashboard', [DashboardController::class, 'index']);
 
-        Route::get('/teachers', [UserController::class, 'teachers']);
+        Route::get('/teachers', [UserController::class, 'teachers']); //DONE
+        Route::get('/teachers/{id}', [UserController::class, 'teachersDetail']); //
         Route::get('/students', [UserController::class, 'students']);
 
         // Student-specific routes

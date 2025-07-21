@@ -194,7 +194,15 @@ class UserController extends Controller
 
     public function teachers()
     {
-        $teachers = User::where('role', 'guru')->get();
+        $teachers = User::where('role', 'guru')
+            ->with(
+                'educationLevels', 
+                'teacherProfile.location.province',
+                'teacherProfile.location.village', 
+                'teacherProfile.location.district', 
+                'teacherProfile.location.city', 
+                )
+            ->get();
 
         return response()->json([
             'success' => true,
@@ -202,6 +210,34 @@ class UserController extends Controller
             'data' => $teachers,
         ]);
     }
+
+    public function teacherDetail($id)
+    {
+        $teacher = User::where('role', 'guru')
+            ->with([
+                'educationLevels',
+                'subjects',
+                'location.province',
+                'location.city',
+                'location.district',
+                'location.village',
+            ])
+            ->find($id);
+
+        if (!$teacher) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Guru tidak ditemukan',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Detail guru ditemukan',
+            'data' => $teacher,
+        ], 200);
+    }
+
 
     public function students()
     {

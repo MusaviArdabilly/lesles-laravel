@@ -77,11 +77,6 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         return $this->hasMany(Attendance::class);
     }
 
-    public function classesTaught()
-    {
-        return $this->hasMany(ClassModel::class, 'teacher_id');
-    }
-
     public function subjects()
     {
         return $this->belongsToMany(Subject::class, 'teacher_subjects', 'teacher_id', 'subject_id');
@@ -90,6 +85,13 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     public function educationLevels()
     {
         return $this->belongsToMany(EducationLevel::class, 'teacher_education_levels', 'teacher_id', 'education_level_id');
+    }
+
+    // unused to below 
+
+    public function classesTaught()
+    {
+        return $this->hasMany(ClassModel::class, 'teacher_id');
     }
 
     public function qualifications()
