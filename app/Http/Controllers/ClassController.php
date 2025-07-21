@@ -100,8 +100,10 @@ class ClassController extends Controller
             return Carbon::parse($attendance->attended_at)->toDateString();
         });
 
-        // Optional: replace attendances with grouped version or add new key
-        $class->attendances_grouped = $attendancesGrouped;
+        // Convert empty collection to empty object
+        $class->attendances_grouped = $attendancesGrouped->isEmpty()
+            ? null
+            : $attendancesGrouped;
         unset($class->attendances);
 
         return response()->json([
@@ -269,8 +271,10 @@ class ClassController extends Controller
             return Carbon::parse($attendance->attended_at)->toDateString();
         });
 
-        // Optional: replace attendances with grouped version or add new key
-        $class->attendances_grouped = $attendancesGrouped;
+        // Convert empty collection to empty object
+        $class->attendances_grouped = $attendancesGrouped->isEmpty()
+            ? (object) []
+            : $attendancesGrouped;
         unset($class->attendances);
 
         return response()->json([
