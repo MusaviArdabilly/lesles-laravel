@@ -80,9 +80,11 @@ Route::middleware(['auth:api'])->group(function () {
         Route::get('/class/upcoming', [ClassController::class, 'getUpcomingClasses']);
         Route::post('/class', [ClassController::class, 'store']); //DONE
 
-        // get all class for operator, use same as user // DONE list pending
+        // get all class for operator, use same as user // DONE 
         Route::get('/operator/class/{id}', [ClassController::class, 'getDetailClassForOperator']); // DONE - duplikasi sama user fetch class
         Route::put('/operator/class/{id}/assign', [ClassController::class, 'assignOrReject']); // DONE
+        Route::put('/operator/class/{id}/edit', [ClassController::class, 'update']); // DONE
+
 
         Route::get('/attendance/check-open', [AttendanceController::class, 'checkAttendanceOpen']); //DONE
         Route::post('/attendance', [AttendanceController::class, 'store']); //DONE

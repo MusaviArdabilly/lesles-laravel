@@ -23,13 +23,16 @@ class ClassModel extends Model
         'description',
         'note',      
         'schedules', 
-        'members_id',
     ];
 
     protected $casts = [
         'schedules' => 'array',
-        'members_id' => 'array',
     ];
+
+    public function members()
+    {
+        return $this->belongsToMany(User::class, 'class_user', 'class_id', 'user_id');
+    }
 
     public function createdBy()
     {
