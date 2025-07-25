@@ -249,7 +249,7 @@ class UserController extends Controller
                 'studentProfile.location.district',
                 'studentProfile.location.village',
             ])
-            ->get();
+            ->latest()->get();
 
         return response()->json([
             'success' => true,
