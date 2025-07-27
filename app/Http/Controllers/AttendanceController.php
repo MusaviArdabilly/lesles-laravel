@@ -131,21 +131,30 @@ class AttendanceController extends Controller
     {
         $user = $request->user();
 
-        if ($user->role !== 'admin') {
+        // Check if the role is allowed
+        if (!in_array($user->role, ['admin', 'operator'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized',
             ], 403);
         }
 
-        $attendances = Attendance::with(['user', 'classModel.teacher'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        // Build the query
+        $query = Attendance::with(['user', 'class'])
+            ->orderBy('created_at', 'desc');
+
+        // Optional filter by user_id
+        if ($request->has('user_id')) {
+            $query->where('user_id', $request->input('user_id'));
+        }
+
+        $attendances = $query->get();
 
         return response()->json([
             'success' => true,
-            'message' => 'All attendances fetched',
+            'message' => 'Attendances fetched',
             'data' => $attendances,
         ]);
     }
+
 }

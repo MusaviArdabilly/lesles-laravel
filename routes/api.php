@@ -57,8 +57,9 @@ Route::middleware(['auth:api'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index']);
 
         Route::get('/teachers', [UserController::class, 'teachers']); //DONE
-        Route::get('/teachers/{id}', [UserController::class, 'teachersDetail']); //
+        Route::get('/teachers/{id}', [UserController::class, 'teacherDetail']); //DONE
         Route::get('/students', [UserController::class, 'students']);
+        Route::get('/students/{id}', [UserController::class, 'studentDetail']);
 
         // Student-specific routes
         Route::post('/student/complete-profile', [StudentController::class, 'completeProfile']); //DONE
@@ -88,8 +89,8 @@ Route::middleware(['auth:api'])->group(function () {
 
         Route::get('/attendance/check-open', [AttendanceController::class, 'checkAttendanceOpen']); //DONE
         Route::post('/attendance', [AttendanceController::class, 'store']); //DONE
-        Route::get('/attendance', [AttendanceController::class, 'getAttendanceByUser']); //fetch from class api
-        Route::get('/attendance/all', [AttendanceController::class, 'index']);
+        Route::get('/attendance', [AttendanceController::class, 'getAttendanceByUser']); //fetch from class api (guru, murid)
+        Route::get('/attendance/all', [AttendanceController::class, 'index']); //DONE (admin, operator) not used by class detail
 
         Route::get('/schedule', [ScheduleController::class, 'index']);
 

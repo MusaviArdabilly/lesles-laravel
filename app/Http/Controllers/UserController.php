@@ -216,11 +216,11 @@ class UserController extends Controller
         $teacher = User::where('role', 'guru')
             ->with([
                 'educationLevels',
-                'subjects',
-                'location.province',
-                'location.city',
-                'location.district',
-                'location.village',
+                'subjects.educationLevel',
+                'teacherProfile.location.province',
+                'teacherProfile.location.city',
+                'teacherProfile.location.district',
+                'teacherProfile.location.village',
             ])
             ->find($id);
 
@@ -238,7 +238,6 @@ class UserController extends Controller
         ], 200);
     }
 
-
     public function students()
     {
         $students = User::where('role', 'murid')
@@ -255,6 +254,25 @@ class UserController extends Controller
             'success' => true,
             'message' => 'List of students',
             'data' => $students,
+        ]);
+    }
+    
+    public function studentDetail($id)
+    {
+        $student = User::where('role', 'murid')
+            ->with([
+                'studentProfile.educationLevel',
+                'studentProfile.location.province',
+                'studentProfile.location.city',
+                'studentProfile.location.district',
+                'studentProfile.location.village',
+            ])
+            ->find($id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Detail murid ditemukan',
+            'data' => $student,
         ]);
     }
 
