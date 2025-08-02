@@ -140,7 +140,12 @@ class AttendanceController extends Controller
         }
 
         // Build the query
-        $query = Attendance::with(['user', 'class'])
+        $query = Attendance::with([
+            'user', 
+            'class.location.province',
+            'class.location.city',
+            'class.location.district'
+            ])
             ->orderBy('created_at', 'desc');
 
         // Optional filter by user_id
